@@ -37,7 +37,7 @@ public class TestUtils {
     private static final double[] defaultDeltas = {0.5, 1.0, 1.5, 2.0}; //, 2.5, 3.0, 3.5, 4.0};
     public static final double defaultBeta = 2;
     public static int defaultWSize = 10000;
-    private static final int[][] defaultKi = {{2, 2, 2, 2, 2, 2, 2}, {5, 7, 1, 0, 0, 0, 1}, {2, 2}};
+    private static final int[][] defaultKi = {{2, 2, 2, 2, 2, 2, 2}, {5, 7, 1, 0, 0, 0, 1}, {7, 7}};
     public static final double INF = 8900;
 
     //VALUES OF MAX AND MIN DISTANCES (measured with CalculateMinMaxDist):

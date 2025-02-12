@@ -30,7 +30,7 @@ In order to use the original datasets it is necessary to download them from thei
 - COVERTYPE: https://archive.ics.uci.edu/dataset/31/covertype
 
 To create all the other randomized datasets, you could run RandomizeDataset.
-All the files used for our tests can be asked to the authors at any time.
+All the files used for our tests can be found at: https://drive.google.com/drive/folders/1YraBr_UZhe9sNAXeCGSiTX9hPQdQDIWW?usp=drive_link
 
 These can be downloaded and put in folders to have the following structure:
 - /data/originals will contain all the datasets as they can be found online;
