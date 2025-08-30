@@ -15,15 +15,15 @@ plt.rcParams.update({
 })
 
 # Parameters to change
-replace_commas = False
-graph_name = "wsize_lines_k30"
-input_file_name = "wsize"
+replace_commas = True
+graph_name = "ki_lines"
+input_file_name = "k"
 y_axis = ["update", "query", "memory", "ratio"]
 color = "algorithm"
 
 # File to read from
-datasets = []#["phones", "higgs", "covtype"]
-file_names = ["wsize_uber"]#[f"{input_file_name}_jones_{dataset}" for dataset in datasets]
+datasets = ["phones"]#["phones", "higgs", "covtype"]
+file_names = ["ki_phones"]#[f"{input_file_name}_jones_{dataset}" for dataset in datasets]
 output_file = f"graphs/{graph_name}"
 
 COLORS = sns.color_palette()
@@ -32,31 +32,35 @@ PALETTE = {
     "JONESETAL": COLORS[0],
     "OURSOBLIVIOUS 0.5": COLORS[2],
     "OURS 0.5": COLORS[1],
+    "OURSOBLIVIOUS 2.0": COLORS[3],
+    "OURS 2.0": COLORS[4],
 }
 
-def filter(df, change_double):
+def filter(df):
     """
     Filters the given DataFrame `df` depending on the type of graph.
     """
-    change_double = True
     df = df.filter(
         pl.col("dataset") != "RANDOM",
         pl.col("dataset") != "NORMALIZED",
         ).filter(
-        pl.col("algorithm").is_in(["JONES", "CHEN", "CAPPDELTA05", "PELLCAPPDELTA05"])
+        pl.col("algorithm").is_in(["JONES", "CHEN", "CAPPDELTA05", "PELLCAPPDELTA05", "CAPPDELTA20", "PELLCAPPDELTA20"])
     )
-    if change_double:
-        df = df.with_columns(
-            pl.col("update").str.replace(",", ".").cast(pl.Float64).alias("update"),
-            pl.col("query").str.replace(",", ".").cast(pl.Float64).alias("query"),
-            pl.col("radius").str.replace(",", ".").cast(pl.Float64).alias("radius"),
-            pl.col("memory").str.replace(",", ".").cast(pl.Float64).alias("memory"),
-            pl.col("ratio").str.replace(",", ".").cast(pl.Float64).alias("ratio"),
-        )
     df = df.with_columns(
-        pl.col("algorithm").str.replace(r"PELLCAPPDELTA(\d+)", "OURSOBLIVIOUS 0.5"),
+        pl.col("update").str.replace(",", ".").cast(pl.Float64).alias("update"),
+        pl.col("query").str.replace(",", ".").cast(pl.Float64).alias("query"),
+        pl.col("radius").str.replace(",", ".").cast(pl.Float64).alias("radius"),
+        pl.col("memory").str.replace(",", ".").cast(pl.Float64).alias("memory"),
+        pl.col("ratio").str.replace(",", ".").cast(pl.Float64).alias("ratio"),
+    )
+    df = df.with_columns(
+        pl.col("algorithm").str.replace(r"PELLCAPPDELTA05", "OURSOBLIVIOUS 0.5"),
     ).with_columns(
-        pl.col("algorithm").str.replace(r"CAPPDELTA(\d+)", "OURS 0.5")
+        pl.col("algorithm").str.replace(r"CAPPDELTA05", "OURS 0.5")
+    ).with_columns(
+        pl.col("algorithm").str.replace(r"PELLCAPPDELTA20", "OURSOBLIVIOUS 2.0"),
+    ).with_columns(
+        pl.col("algorithm").str.replace(r"CAPPDELTA20", "OURS 2.0")
     ).with_columns(
         pl.col("algorithm").str.replace("CHEN", "CHENETAL")
     ).with_columns(
@@ -76,9 +80,9 @@ def plot_lines(x, y, data=None, **kwargs):
 
     # Handle non-baseline algorithms
     non_baseline = data
-    markers = ['o', 'x', 's', '^']
+    markers = ['o', 'x', 's', '^', 'v', 'P']
     i = 0
-    for algo in ["CHENETAL", "JONESETAL", "OURS 0.5", "OURSOBLIVIOUS 0.5"]:
+    for algo in ["CHENETAL", "JONESETAL", "OURS 0.5", "OURSOBLIVIOUS 0.5", "OURS 2.0", "OURSOBLIVIOUS 2.0"]:
         algo_data = non_baseline[non_baseline["algorithm"] == algo]
         if not algo_data.empty:
             ax.plot(algo_data[x], algo_data[y],
@@ -101,9 +105,9 @@ def load(file, basedir="experiments_results/"):
     if "type" in df.columns:
         df = df.filter(pl.col("type") == "Rand")
     df = df.select(
-        "wsize", "algorithm", "update", "query", "radius", "ratio", "memory", "dataset"
+        "wsize", "algorithm", "update", "query", "radius", "ratio", "memory", "dataset", "k"
     )
-    return filter(df, file != "wsize_jones_phones")
+    return filter(df)
 
 def read_and_plot_bar(output_file_path):
     """
@@ -112,11 +116,7 @@ def read_and_plot_bar(output_file_path):
     dataframe = []
     #for dataset in datasets:
     #    file = "wsize_jones_" + dataset
-    df = load("wsize_k30_phones")
-    dataframe.append(df)
-    df = load("wsize_k30_uber")
-    dataframe.append(df)
-    df = load("wsize_k30_beers")
+    df = load(file_names[0])
     dataframe.append(df)
     dat = pl.concat(dataframe)
 
@@ -132,17 +132,17 @@ def read_and_plot_bar(output_file_path):
             sharex=False,
             sharey=graph == "query",
             height=2.5,      # Added height parameter (increased size)
-            aspect=2,    # Adjusted aspect ratio
+            aspect=1.7,    # Adjusted aspect ratio
             margin_titles=True
         )
 
         g.map_dataframe(
             plot_lines,
-            "wsize",
+            "k",
             graph
         )
 
-        g.set_xlabels("window size", usetex=True)
+        g.set_xlabels("k", usetex=True)
 
         # Get the last subplot and add the legend there with smaller font
         last_ax = g.axes.flat[-1]

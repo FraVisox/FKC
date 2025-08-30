@@ -1,0 +1,8 @@
+At time: 10000
+Min distance: 6.501525636766064E-7
+Max distance: 1.6194813556946852
+
+FINAL: 18837
+Min distance: 5.988775097993224E-7
+Max distance: 1.6194813556946852
+

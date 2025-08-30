@@ -215,6 +215,10 @@ public class JONES implements Algorithm {
                     remove_last = R.size()-i;
                 }
                 RelationshipEdge connection1 = new RelationshipEdge(pair.getP());
+                if (pair.getP() == null) {
+                    System.out.println("NULL POINTER EXCEPTION IN JONES FOR A NULL POINT");
+                    continue;
+                }
                 graph.addEdge("v"+pair.getVj().toString(), "group"+pair.getP().getGroup(), connection1);
                 graph.setEdgeWeight(connection1, 1);
                 remove_first++;

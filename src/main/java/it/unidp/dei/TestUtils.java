@@ -28,28 +28,29 @@ public class TestUtils {
     private static final int stride = 200;
 
     //Datasets: input files and output files, plus the DatasetReaders to read them
-    private static final String[] datasets = {"Phones_accelerometer.csv", "covtype.dat", "HIGGS.csv"};
-    private static final String[] outFiles = {"TestPhones.csv", "TestCovtype.csv", "TestHiggs.csv"};
-    private static final Class[] readers = {PhonesReader.class, CovertypeReader.class, HiggsReader.class};
+    private static final String[] datasets = {"Phones_accelerometer.csv", "uber.csv", "beers_10000.csv"};//{"twitter.csv"};//{"Phones_accelerometer.csv", "covtype.dat", "HIGGS.csv"};
+    private static final String[] outFiles = {"TestPhones.csv", "TestUber.csv", "TestBeers.csv"};//{"TestTwitter.csv"};//{"TestPhones.csv", "TestCovtype.csv", "TestHiggs.csv"};
+    private static final Class[] readers = {PhonesReader.class, UberReader.class, BeerReader.class};//{TwitterReader.class};//{PhonesReader.class, CovertypeReader.class, HiggsReader.class};
 
     //Some default parameters that are the same for every dataset
     public static final double defaultEpsilon = 0.9;
-    private static final double[] defaultDeltas = {0.5, 1.0, 1.5, 2.0}; //, 2.5, 3.0, 3.5, 4.0};
+    private static final double[] defaultDeltas = {0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0};
     public static final double defaultBeta = 2;
-    public static int defaultWSize = 10000;
-    private static final int[][] defaultKi = {{2, 2, 2, 2, 2, 2, 2}, {5, 7, 1, 0, 0, 0, 1}, {7, 7}};
+    public static int defaultWSize = 30000;
+
+    private static final int[][] defaultKi = {{4, 5, 4, 5, 4, 4, 4}, {1,6,5,17,1}, {0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 2, 2, 5, 3, 2, 7}};//, {}, {0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 2, 1, 1, 3}};//{{}, {14}, {6, 8}, {4, 6, 4}, {4, 2, 4, 4}, {2, 2, 2, 4, 4}, {2, 2, 2, 2, 4, 2}, {2, 2, 2, 2, 2, 2, 2}};//{1, 4, 3, 6, 0}};//{{5, 4, 5}};//{{2, 2, 2, 2, 2, 2, 2}, {5, 7, 1, 0, 0, 0, 1}, {7, 7}};
     public static final double INF = 8900;
 
     //VALUES OF MAX AND MIN DISTANCES (measured with CalculateMinMaxDist):
     //  PHONES: maxD = 52.6 and minD = 8.1e-5 (tested for 600000 points, and there are 13062475)
     //  COVTYPE: maxD = 8853.4 and minD = 2.82 (tested for all 581012 points)
     //  HIGGS: maxD = 26.7 and minD = 0.008 (tested for 600000 points and there are 11000000)
-    private static final double[] minDist = {8.1e-5, 2.82, 0.008};
-    private static final double[] maxDist = {52.6, 8853.4, 26.7};
+    private static final double[] minDist = {1e-4, 9e-5, 0.5};//{6.5e-7};//{8.1e-5, 2.82, 0.008};
+    private static final double[] maxDist = {35.2, 1.38, 8.95};//{1.62};//{52.6, 8853.4, 26.7};
 
     //VALUES OF REAL MAX AND MIN DISTANCES for 10.000 points:
-    private static final double[] realMinDist = {0.002, 8.12, 0.02};
-    private static final double[] realMaxDist = {33.7, 8693, 15.4};
+    private static final double[] realMinDist = {1e-4, 9e-5, 0.5};//{6.5e-7};//{0.002, 8.12, 0.02};
+    private static final double[] realMaxDist = {35.2, 1.38, 8.95};//{1.62};//{33.7, 8693, 15.4};
 
     //Test of algorithms with standard parameters on randomized datasets
     public static void testRandomized() {
@@ -66,20 +67,25 @@ public class TestUtils {
         //The values are given as to preserve the number K but distributed according to the percentages of the points
         int[][][] ki = {
                 //PHONES, COVTYPE, HIGGS
-                {{1, 1, 1, 1, 1, 1, 1}, {3, 4, 0, 0, 0, 0, 0}, {1, 1}},
-                {{2, 2, 2, 2, 2, 2, 2}, {5, 7, 1, 0, 0, 0, 1}, {2, 2}},
-                {{5, 6, 5, 6, 4, 4, 5}, {13, 17, 2, 0, 1, 1, 1}, {9, 11}},
-                {{10, 11, 9, 12, 9, 9, 10}, {25, 35, 4, 0, 1, 2, 3}, {14, 16}},
-                {{15, 16, 14, 19, 13, 13, 15}, {37, 52, 6, 1, 2, 3, 4}, {19, 21}},
-                {{20, 22, 19, 25, 18, 17, 19}, {50, 69, 9, 1, 2, 4, 5}, {24, 26}},
-                {{25, 27, 24, 31, 22, 22, 24}, {62, 87, 11, 1, 3, 5, 6}, {28, 32}},
-                {{50, 55, 48, 62, 44, 43, 48}, {125, 173, 21, 2, 6, 11, 12}, {47, 53}},
-                {{99, 110, 95, 125, 88, 86, 97}, {250, 346, 43, 3, 12, 22, 24}, {94, 106}},
+                {{1, 1, 1, 1, 1, 1, 1} },//, {3, 4, 0, 0, 0, 0, 0}, {1, 1}},
+                {{2, 2, 2, 2, 2, 2, 2} },//, {5, 7, 1, 0, 0, 0, 1}, {2, 2}},
+                {{3, 3, 3, 3, 3, 3, 3} },//, {5, 7, 1, 0, 0, 0, 1}, {2, 2}},
+                {{5, 6, 5, 6, 4, 4, 5} },//, {13, 17, 2, 0, 1, 1, 1}, {9, 11}},
+                {{10, 11, 9, 12, 9, 9, 10} },//, {25, 35, 4, 0, 1, 2, 3}, {14, 16}},
+                {{15, 16, 14, 19, 13, 13, 15} },//, {37, 52, 6, 1, 2, 3, 4}, {19, 21}},
+                {{20, 22, 19, 25, 18, 17, 19} },//, {50, 69, 9, 1, 2, 4, 5}, {24, 26}},
+                {{25, 27, 24, 31, 22, 22, 24} },//, {62, 87, 11, 1, 3, 5, 6}, {28, 32}},
+                //{{50, 55, 48, 62, 44, 43, 48} },//, {125, 173, 21, 2, 6, 11, 12}, {47, 53}},
+                //{{99, 110, 95, 125, 88, 86, 97} },//, {250, 346, 43, 3, 12, 22, 24}, {94, 106}},
         };
         for (int[][] ints : ki) {
             int k = Algorithm.calcK(ints[0]);
             testDatasets(true, "k" + k, ints, defaultWSize, defaultBeta);
         }
+    }
+
+    public static void testK100() {
+        testDatasets(true, "k100", defaultKi, defaultWSize, defaultBeta);
     }
 
     //Test on dataset of known radius obtained through datasetUtils.CreateAdHocDataset.py
@@ -106,6 +112,10 @@ public class TestUtils {
         reader.close();
     }
 
+    public static void testDelta() {
+        testDatasets(true, null, defaultKi, defaultWSize, defaultBeta);
+    }
+
     //Test with different beta on standard datasets
     public static void testBeta() {
         double[] beta = {0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 10, 15, 20, 30, 40, 50, 70, 100, 200, 500, 1000};
@@ -116,63 +126,58 @@ public class TestUtils {
 
     //Test with different wSize on standard datasets
     public static void testWSize() {
-        int[] wSize = {500, 1000, 5000, 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 200000, 500000};
+        int[] wSize = {10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 200000, 500000};
         for (int w : wSize) {
-            testDatasets(true, "w" + 500000, defaultKi, w, defaultBeta);
+            testDatasets(true, "w" + w, defaultKi, w, defaultBeta);
             System.gc();
         }
     }
 
+    public static void testCategories() {
+        //int[] wSize = {10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 200000, 500000};
+        DatasetReader[] readers = {new PhonesReader1(), new PhonesReader2(), new PhonesReader3(), new PhonesReader4(), new PhonesReader5(), new PhonesReader6(), new PhonesReader()};
+        int cat = 1;
+        for (DatasetReader reader : readers) {
+            PrintWriter writer;
+
+            String set = datasets[0];
+            try {
+                reader.setSource(inFolderRandomized + set);
+                writer = new PrintWriter(outFolder + "randCat"+ cat + outFiles[0]);
+            } catch (FileNotFoundException e) {
+                System.out.println("File " + set + " not found, skipping to next dataset");
+                continue;
+            }
+
+            System.out.println("Test categories "+cat+"\n");
+            testDiffAlgorithms(reader, writer, minDist[0], maxDist[0], realMinDist[0], realMaxDist[0], defaultKi[cat], defaultWSize, TestUtils.defaultEpsilon, defaultBeta);
+
+            //CLOSE
+            writer.close();
+
+            reader.close();
+            System.out.println(set+" finished with categories: "+cat);
+            cat++;
+        }
+    }
+
     //TEST DATASETS, called in every test with different parameters
-    private static void testDatasets(boolean rand, String name, int[][] ki, int wSize, double beta) {
+    public static void testDatasets(boolean rand, String name, int[][] ki, int wSize, double beta) {
         DatasetReader reader;
         PrintWriter writer;
 
         //For every different parameter passed, we make tests on all datasets
         for (int i = 0; i< datasets.length; i++) {
             String set = datasets[i];
+
             try {
-                //Create a dataset reader
-                if (readers[i] == RandomReader.class) {
-                    //Dimension of random20
-                    reader = new RandomReader(2);
+                reader = (DatasetReader) readers[i].newInstance();
+                if (i == 0) {
+                    reader.setSource(inFolderRandomized+set);
                 } else {
-                    reader = (DatasetReader) readers[i].newInstance();
-                }
-
-                //IF RANDOM
-                if (rand) {
-
-                    //Instantiate the file
-                    if (reader instanceof HiggsReader) {
-                        reader.setSource(inFolderOriginals + set);
-                    } else {
-                        reader.setSource(inFolderRandomized + set);
-                    }
-
-                    //Create a results writer
-                    if (name != null) {
-                        writer = new PrintWriter(outFolder + "rand" + name + outFiles[i]);
-                    } else {
-                        writer = new PrintWriter(outFolder + "randCAPP" + outFiles[i]);
-                    }
-
-                } else { //IF ORIGINAL
-
-                    //Instantiate the file
-                    if (reader instanceof RandomReader || reader instanceof HiggsReader) {
-                        //Random and Higgs are already tested in randomized
-                        continue;
-                    }
                     reader.setSource(inFolderOriginals + set);
-
-                    //Create a results writer
-                    if (name != null) {
-                        writer = new PrintWriter(outFolder + "orig" + name + outFiles[i]);
-                    } else {
-                        writer = new PrintWriter(outFolder + "orig" + outFiles[i]);
-                    }
                 }
+                writer = new PrintWriter(outFolder + "rand" + name + outFiles[i]);
             } catch (FileNotFoundException e) {
                 System.out.println("File " + set + " not found, skipping to next dataset");
                 continue;
@@ -184,11 +189,11 @@ public class TestUtils {
             //Depending on deltas, call the testings
             if (name == null) {
                 //THIS IS ONLY FOR RANDOM AND ORIGINAL
-                System.out.println("Test differences\n\n");
+                System.out.println("Test delta\n\n");
                 testDiffAlgorithms(reader, writer, minDist[i], maxDist[i], realMinDist[i], realMaxDist[i], ki[i], wSize, TestUtils.defaultEpsilon, beta);
             } else {
-                System.out.println("Test algorithms\n\n");
-                testAlgorithms(reader, writer, ki[i], wSize, 15, beta, minDist[i], maxDist[i]);
+                System.out.println("Test wsize\n\n");
+                testAlgorithms(reader, writer, ki[i], wSize, defaultEpsilon, beta, minDist[i], maxDist[i]);
             }
 
             //CLOSE
@@ -355,6 +360,89 @@ public class TestUtils {
     //Function called by everything else
     public static void testAlgorithms(DatasetReader reader, PrintWriter writer, int[] kiSet, int wSize, double epsilon, double beta, double minDist, double maxDist) {
 
+        if (reader instanceof BeerReader) {
+            switch (wSize) {
+                case 10000:
+                    kiSet = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 5, 3, 2, 7};
+                    break;
+
+                case 20000:
+                    kiSet = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 2, 3, 5, 2, 2, 7};
+                    break;
+
+                case 30000:
+
+                case 40000:
+
+                case 50000:
+                    kiSet = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 2, 2, 5, 3, 2, 7};
+                    break;
+
+                case 60000:
+                    kiSet = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 2, 2, 5, 3, 2, 7};
+                    break;
+
+                case 70000:
+
+                case 80000:
+
+                case 90000:
+
+                case 100000:
+                    kiSet = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 2, 2, 4, 3, 2, 7};
+                    break;
+
+                case 200000:
+                    kiSet = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 2, 4, 3, 3, 8};
+                    break;
+
+                case 500000:
+                    kiSet = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 8};
+                    break;
+
+                default:
+                    throw new IllegalArgumentException("Unsupported wsize: " + wSize);
+            }
+        } else if (reader instanceof UberReader) {
+
+            switch (wSize) {
+                case 10000:
+
+                case 20000:
+
+                case 30000:
+
+                case 40000:
+
+                case 50000:
+
+                case 70000:
+
+                case 90000:
+
+                case 100000:
+                    kiSet = new int[]{1,6,5,17,1};
+                    break;
+
+                case 60000:
+                    kiSet = new int[]{0,5,5,19,1};
+                    break;
+
+                case 80000:
+
+                case 200000:
+
+                case 500000:
+                    kiSet = new int[]{0,6,5,18,1};
+                    break;
+
+                default:
+                    throw new IllegalArgumentException("Unsupported wsize: " + wSize);
+            }
+
+        }
+
+
         //Testing LinkedList, contains all the window
         LinkedList<Point> window = new LinkedList<>();
 
@@ -362,43 +450,30 @@ public class TestUtils {
         if (wSize >= 40000 && wSize <= 200000)
         {
             //NO CHEN
-            algorithms = new Algorithm[11];
+            algorithms = new Algorithm[3];
             algorithms[0] = new JONES(kiSet);
 
-            algorithms[1] = new PELLCAPP(beta, epsilon, kiSet);
-            algorithms[2] = new CAPP(kiSet, epsilon, beta, minDist, maxDist);
+            algorithms[1] = new PELLCAPPDELTAxx(beta, 0.5, kiSet);
+            algorithms[2] = new CAPPDELTAxx(kiSet, 0.5, beta, minDist, maxDist);
 
-            int i = 3;
-            for (double dd : defaultDeltas) {
-                algorithms[i++] = new PELLCAPPDELTAxx(beta, dd, kiSet);
-                algorithms[i++] = new CAPPDELTAxx(kiSet, dd, beta, minDist, maxDist);
-            }
-
-            writer.println("JONES;;;;;;PELLCAPP;;;;;;CAPP;;;;;;PELLCAPPDELTA05;;;;;;CAPPDELTA05;;;;;;PELLCAPPDELTA10;;;;;;CAPPDELTA10;;;;;;PELLCAPPDELTA15;;;;;;CAPPDELTA15;;;;;;PELLCAPPDELTA20;;;;;;CAPPDELTA20;;;;;;");
+            writer.println("JONES;;;;;;PELLCAPPDELTA05;;;;;;CAPPDELTA05;;;;;;");
         } else if (wSize > 200000) {
             //NO JONES and NO CHEN
-            algorithms = new Algorithm[10];
+            algorithms = new Algorithm[2];
 
-            algorithms[0] = new PELLCAPP(beta, epsilon, kiSet);
-            algorithms[1] = new CAPP(kiSet, epsilon, beta, minDist, maxDist);
+            algorithms[0] = new PELLCAPPDELTAxx(beta, 0.5, kiSet);
+            algorithms[1] = new CAPPDELTAxx(kiSet, 0.5, beta, minDist, maxDist);
 
-            int i = 2;
-            for (double dd : defaultDeltas) {
-                algorithms[i++] = new PELLCAPPDELTAxx(beta, dd, kiSet);
-                algorithms[i++] = new CAPPDELTAxx(kiSet, dd, beta, minDist, maxDist);
-            }
-
-            writer.println("PELLCAPP;;;;;;CAPP;;;;;;PELLCAPPDELTA05;;;;;;CAPPDELTA05;;;;;;PELLCAPPDELTA10;;;;;;CAPPDELTA10;;;;;;PELLCAPPDELTA15;;;;;;CAPPDELTA15;;;;;;PELLCAPPDELTA20;;;;;;CAPPDELTA20;;;;;;");
+            writer.println("PELLCAPPDELTA05;;;;;;CAPPDELTA05;;;;;;");
         } else {
             //DEFAULT, with everything. These are not used for all tests, but only for the last ones made.
-            algorithms = new Algorithm[6];
+            algorithms = new Algorithm[4];
             algorithms[0] = new JONES(kiSet);
             algorithms[1] = new CHEN(kiSet);
             algorithms[2] = new PELLCAPPDELTAxx(beta, 0.5, kiSet);
             algorithms[3] = new CAPPDELTAxx(kiSet, 0.5, beta, minDist, maxDist);
-            algorithms[4] = new PELLCAPPDELTAxx(beta, 2, kiSet);
-            algorithms[5] = new CAPPDELTAxx(kiSet, 2, beta, minDist, maxDist);
-            writer.println("JONES;;;;;;CHEN;;;;;;PELLCAPPDELTA05;;;;;;CAPPDELTA05;;;;;;PELLCAPPDELTA20;;;;;;CAPPDELTA20;;;;;;");
+
+            writer.println("JONES;;;;;;CHEN;;;;;;PELLCAPPDELTA05;;;;;;CAPPDELTA05;;;;;;");
         }
 
         int i;
@@ -468,16 +543,23 @@ public class TestUtils {
         LinkedList<Point> window = new LinkedList<>();
 
         //Initialize the algorithms
-        Algorithm[] algorithms = new Algorithm[9];
+        Algorithm[] algorithms = new Algorithm[18];
         algorithms[0] = new JONES(kiSet);
+        algorithms[1] = new CHEN(kiSet);
 
-        int i = 1;
+        int i = 2;
+
+        for (double dd : defaultDeltas) {
+            algorithms[i] = new PELLCAPPDELTAxx(beta, dd, kiSet);
+            i++;
+        }
 
         for (double dd : defaultDeltas) {
             algorithms[i] = new CAPPDELTAxx(kiSet, dd, beta, min, max);
             i++;
         }
-        writer.println("JONES;;;;;;CAPPDELTA05;;;;;;CAPPDELTA10;;;;;;CAPPDELTA15;;;;;;CAPPDELTA20;;;;;;CAPPDELTA25;;;;;;CAPPDELTA30;;;;;;CAPPDELTA35;;;;;;CAPPDELTA40;;;;;;");
+
+        writer.println("JONES;;;;;;CHEN;;;;;;PELLCAPPDELTA05;;;;;;PELLCAPPDELTA10;;;;;;PELLCAPPDELTA15;;;;;;PELLCAPPDELTA20;;;;;;PELLCAPPDELTA25;;;;;;PELLCAPPDELTA30;;;;;;PELLCAPPDELTA35;;;;;;PELLCAPPDELTA40;;;;;;CAPPDELTA05;;;;;;CAPPDELTA10;;;;;;CAPPDELTA15;;;;;;CAPPDELTA20;;;;;;CAPPDELTA25;;;;;;CAPPDELTA30;;;;;;CAPPDELTA35;;;;;;CAPPDELTA40;;;;;;");
 
         String header = "Update Time;Query Time;Radius;Ratio;Memory";
         for (i = 0; i<algorithms.length; i++) {
@@ -573,7 +655,11 @@ public class TestUtils {
         }
 
         writer.print(String.format(Locale.ITALIAN, "%.16f", radius)+";");
-        writer.print(String.format(Locale.ITALIAN, "%.16f", radius / minRadius) + ";");
+        if (minRadius == -1) {
+            writer.print(String.format(Locale.ITALIAN, "%.16f", 1.0) + ";");
+        } else {
+            writer.print(String.format(Locale.ITALIAN, "%.16f", radius / minRadius) + ";");
+        }
         return radius;
     }
 

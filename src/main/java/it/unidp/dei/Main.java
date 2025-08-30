@@ -34,6 +34,10 @@ public class Main {
             System.out.println("\n----------------------\nSTART OF TEST OF BLOBS\n----------------------\n");
             BlobsTestUtils.testBlobs();
             System.out.println("\n----------------------\nBLOBS TEST FINISHED\n----------------------\n");
+        } else if (args[0].equalsIgnoreCase("delta")) {
+            System.out.println("\n----------------------\nSTART OF TEST OF DELTA\n----------------------\n");
+            TestUtils.testDelta();
+            System.out.println("\n----------------------\nDELTA TEST FINISHED\n----------------------\n");
         } else {
             System.out.println("Command "+args[0]+" not recognized, aborting");
         }

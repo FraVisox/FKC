@@ -19,6 +19,7 @@ with one of the following options
    - perfect to test the algorithms on the dataset of known radius
    - rr to test the algorithms on the datasets obtained by adding features to PHONE and then rotating it
    - b to test algorithms when beta changes (not included in the paper as not interesting)
+   - delta to test algorithms when the delta changes
    - w to test algorithms when the window size changes
    - dd to test algorithms when the number of features changes
    - k to test algorithms when K changes (not included in the paper as not interesting)
@@ -28,6 +29,8 @@ In order to use the original datasets it is necessary to download them from thei
 - HIGGS: https://archive.ics.uci.edu/dataset/280/higgs
 - PHONES: https://archive.ics.uci.edu/dataset/344/heterogeneity+activity+recognition
 - COVERTYPE: https://archive.ics.uci.edu/dataset/31/covertype
+- UBER: https://github.com/fivethirtyeight/uber-tlc-foil-response
+- BEERS: https://www.kaggle.com/datasets/thedevastator/1-5-million-beer-reviews-from-beer-advocate
 
 To create all the other randomized datasets, you could run RandomizeDataset.
 All the files used for our tests can be found at: https://drive.google.com/drive/folders/1YraBr_UZhe9sNAXeCGSiTX9hPQdQDIWW?usp=drive_link

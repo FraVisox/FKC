@@ -15,53 +15,55 @@ plt.rcParams.update({
 })
 
 # Parameters to change
-replace_commas = False
-graph_name = "wsize_lines_k30"
+replace_commas = True
+graph_name = "deltas_lines_k100"
 input_file_name = "wsize"
 y_axis = ["update", "query", "memory", "ratio"]
 color = "algorithm"
 
 # File to read from
-datasets = []#["phones", "higgs", "covtype"]
-file_names = ["wsize_uber"]#[f"{input_file_name}_jones_{dataset}" for dataset in datasets]
+datasets = ["phones", "higgs", "covtype"]
+file_names = ["jab"]#f"{input_file_name}_jones_{dataset}" for dataset in datasets]
 output_file = f"graphs/{graph_name}"
 
 COLORS = sns.color_palette()
 PALETTE = {
     "CHENETAL": COLORS[6],
     "JONESETAL": COLORS[0],
-    "OURSOBLIVIOUS 0.5": COLORS[2],
-    "OURS 0.5": COLORS[1],
+    "OURSOBLIVIOUS": COLORS[2],
+    "OURS": COLORS[1],
 }
 
-def filter(df, change_double):
+def filter(df):
     """
     Filters the given DataFrame `df` depending on the type of graph.
     """
-    change_double = True
     df = df.filter(
         pl.col("dataset") != "RANDOM",
         pl.col("dataset") != "NORMALIZED",
-        ).filter(
-        pl.col("algorithm").is_in(["JONES", "CHEN", "CAPPDELTA05", "PELLCAPPDELTA05"])
-    )
-    if change_double:
-        df = df.with_columns(
-            pl.col("update").str.replace(",", ".").cast(pl.Float64).alias("update"),
-            pl.col("query").str.replace(",", ".").cast(pl.Float64).alias("query"),
-            pl.col("radius").str.replace(",", ".").cast(pl.Float64).alias("radius"),
-            pl.col("memory").str.replace(",", ".").cast(pl.Float64).alias("memory"),
-            pl.col("ratio").str.replace(",", ".").cast(pl.Float64).alias("ratio"),
         )
     df = df.with_columns(
-        pl.col("algorithm").str.replace(r"PELLCAPPDELTA(\d+)", "OURSOBLIVIOUS 0.5"),
+        pl.col("update").str.replace(",", ".").cast(pl.Float64).alias("update"),
+        pl.col("query").str.replace(",", ".").cast(pl.Float64).alias("query"),
+        pl.col("radius").str.replace(",", ".").cast(pl.Float64).alias("radius"),
+        pl.col("memory").str.replace(",", ".").cast(pl.Float64).alias("memory"),
+        pl.col("ratio").str.replace(",", ".").cast(pl.Float64).alias("ratio"),
+    )
+    df = df.with_columns(
+        pl.col("algorithm").str.extract(r"DELTA(\d+)").cast(pl.Float64).alias("delta") / 10
+    )
+    df = df.with_columns(
+        pl.col("algorithm").str.replace(r"PELLCAPPDELTA(\d+)", "OURSOBLIVIOUS"),
     ).with_columns(
-        pl.col("algorithm").str.replace(r"CAPPDELTA(\d+)", "OURS 0.5")
+        pl.col("algorithm").str.replace(r"CAPPDELTA(\d+)", "OURS")
+    ).filter(
+        pl.col("algorithm").is_in(["JONES", "CHEN", "OURS", "OURSOBLIVIOUS"])
     ).with_columns(
         pl.col("algorithm").str.replace("CHEN", "CHENETAL")
     ).with_columns(
         pl.col("algorithm").str.replace("JONES", "JONESETAL")
     )
+    #df = df.filter(pl.col("wsize").is_in([10000]))
     df = df.with_columns(
         (pl.col("update") / 1e6).alias("update"),
         (pl.col("query") / 1e6).alias("query")
@@ -74,11 +76,22 @@ def plot_lines(x, y, data=None, **kwargs):
     """
     ax = plt.gca()
 
+    # Handle baseline algorithms
+    baseline = data[data["algorithm"].isin(["JONESETAL", "CHENETAL"])]
+    for _, row in baseline.iterrows():
+        algo = row["algorithm"]
+        linestyle = ":" if algo == "JONESETAL" else "--"
+        ax.axhline(row[y],
+                   color=PALETTE[algo],
+                   linestyle=linestyle,
+                   label=f"{algo}",
+                   linewidth=1.5)  # Slightly thicker lines
+
     # Handle non-baseline algorithms
-    non_baseline = data
-    markers = ['o', 'x', 's', '^']
+    non_baseline = data[~data["algorithm"].isin(["JONESETAL", "CHENETAL"])]
+    markers = ['^', 'x']
     i = 0
-    for algo in ["CHENETAL", "JONESETAL", "OURS 0.5", "OURSOBLIVIOUS 0.5"]:
+    for algo in ["OURS", "OURSOBLIVIOUS"]:
         algo_data = non_baseline[non_baseline["algorithm"] == algo]
         if not algo_data.empty:
             ax.plot(algo_data[x], algo_data[y],
@@ -86,8 +99,8 @@ def plot_lines(x, y, data=None, **kwargs):
                     linestyle='-',
                     color=PALETTE[algo],
                     label=algo,
-                    markersize=6,      # Slightly larger markers
-                    linewidth=1.5)     # Slightly thicker lines
+                    linewidth=1.5,  # Slightly thicker lines
+                    markersize=6)   # Slightly larger markers
             i += 1
 
 def load(file, basedir="experiments_results/"):
@@ -98,12 +111,10 @@ def load(file, basedir="experiments_results/"):
     df = df.with_columns(pl.lit(file.split("_")[-1].upper()).alias("dataset"))
     if "wsize" not in df.columns:
         df = df.with_columns(pl.lit(10000, pl.Int64).alias("wsize"))
-    if "type" in df.columns:
-        df = df.filter(pl.col("type") == "Rand")
     df = df.select(
         "wsize", "algorithm", "update", "query", "radius", "ratio", "memory", "dataset"
     )
-    return filter(df, file != "wsize_jones_phones")
+    return filter(df)
 
 def read_and_plot_bar(output_file_path):
     """
@@ -111,18 +122,18 @@ def read_and_plot_bar(output_file_path):
     """
     dataframe = []
     #for dataset in datasets:
-    #    file = "wsize_jones_" + dataset
-    df = load("wsize_k30_phones")
+        #file = "wsize_jones_" + dataset
+    df = load("k100_phones")
     dataframe.append(df)
-    df = load("wsize_k30_uber")
+    df = load("k100_uber")
     dataframe.append(df)
-    df = load("wsize_k30_beers")
+    df = load("k100_beers")
     dataframe.append(df)
     dat = pl.concat(dataframe)
 
     # Convert Polars DataFrame to Pandas for seaborn compatibility
     dat = dat.to_pandas()
-
+    
     for graph in y_axis:
         # Create larger figure with better proportions
         g = sns.FacetGrid(
@@ -131,18 +142,18 @@ def read_and_plot_bar(output_file_path):
             col_wrap=3,
             sharex=False,
             sharey=graph == "query",
-            height=2.5,      # Added height parameter (increased size)
-            aspect=2,    # Adjusted aspect ratio
+            height=2.5,      # TODO: change
+            aspect=1.7,    # TODO: change
             margin_titles=True
         )
 
         g.map_dataframe(
             plot_lines,
-            "wsize",
+            "delta",
             graph
         )
 
-        g.set_xlabels("window size", usetex=True)
+        g.set_xlabels(r"$\delta$", usetex=True)
 
         # Get the last subplot and add the legend there with smaller font
         last_ax = g.axes.flat[-1]
